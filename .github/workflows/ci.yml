@@ -59,10 +59,8 @@ jobs:
           fi
           echo '--------------------------------------------'
           echo "SOFA successfully downloaded and installed in $SOFA_ROOT"
-          echo '---------------- SOFA_ROOT -----------------'
-          ls -la "$SOFA_ROOT"
-          echo '--------------- git-info.txt ---------------'
-          cat "$SOFA_ROOT"/git-info.txt 2>&1 || true
+          echo '--------------------------------------------'
+          ls -la $SOFA_ROOT
       
       - name: Remove SofaPython3 from SOFA binaries
         shell: bash
@@ -84,6 +82,10 @@ jobs:
           curl --output "${{ runner.temp }}/STLIB_tmp/SofaPython3.zip" -L $url
           unzip -qq "${{ runner.temp }}/STLIB_tmp/SofaPython3.zip" -d "${{ runner.temp }}/STLIB_tmp/binaries"
           mv "${{ runner.temp }}"/STLIB_tmp/binaries/SofaPython3_*/* "$SofaPython3_INSTALL_DIR"
+          echo "--------------------------------------------"
+          echo "SofaPython3 successfully downloaded and installed in $SofaPython3_INSTALL_DIR"
+          echo "--------------------------------------------"
+          ls -la $SofaPython3_INSTALL_DIR
 
       - name: Install STLIB
         shell: bash
@@ -96,6 +98,10 @@ jobs:
           curl --output "${{ runner.temp }}/STLIB_tmp/STLIB.zip" -L $url
           unzip -qq "${{ runner.temp }}/STLIB_tmp/STLIB.zip" -d "${{ runner.temp }}/STLIB_tmp/binaries"
           mv "${{ runner.temp }}"/STLIB_tmp/binaries/STLIB_*/* "$STLIB_INSTALL_DIR"
+          echo '--------------------------------------------'
+          echo "STLIB successfully downloaded and installed in $STLIB_INSTALL_DIR"
+          echo "--------------------------------------------"
+          ls -la $STLIB_INSTALL_DIR
 
       - name: Install SoftRobots
         shell: bash
@@ -108,6 +114,10 @@ jobs:
           curl --output "${{ runner.temp }}/SoftRobots_tmp/SoftRobots.zip" -L $url
           unzip -qq "${{ runner.temp }}/SoftRobots_tmp/SoftRobots.zip" -d "${{ runner.temp }}/SoftRobots_tmp/binaries"
           mv "${{ runner.temp }}"/SoftRobots_tmp/binaries/SoftRobots_*/* "$SoftRobots_INSTALL_DIR"
+          echo '--------------------------------------------'
+          echo "SoftRobots successfully downloaded and installed in $SoftRobots_INSTALL_DIR"
+          echo "--------------------------------------------"
+          ls -la $SoftRobots_INSTALL_DIR
 
       - name: Checkout source code
         uses: actions/checkout@v2
@@ -126,7 +136,13 @@ jobs:
           echo "STLIB NO_VERSION" >> $plugin_list_path
           echo "SoftRobots NO_VERSION" >> $plugin_list_path
           
-          cp -f $WORKSPACE_SRC_PATH/*.md "$SOFA_ROOT"          
+          cp -f $WORKSPACE_SRC_PATH/*.md "$SOFA_ROOT"
+          
+          echo '-------------- SOFA_ROOT --------------'
+          ls -la $SOFA_ROOT
+          echo '---------- SOFA_ROOT/plugins ----------'
+          ls -la $SOFA_ROOT/plugins
+          echo '---------------------------------------'
 
       - name: Create artifact
         uses: actions/upload-artifact@v2
