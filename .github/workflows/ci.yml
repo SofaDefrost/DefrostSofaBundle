@@ -1,0 +1,133 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+
+jobs:
+  build-and-test:
+    name: Run on ${{ matrix.os }} with SOFA ${{ matrix.sofa_branch }} and python ${{ matrix.python_version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04, macos-10.15, windows-2019]
+        sofa_branch: [master]
+        python_version: ['3.7', '3.8', '3.9', '3.10']
+
+    steps:
+      - name: Setup SOFA and environment
+        id: sofa
+        uses: guparan/sofa-setup-action@ci_improve_workflow
+        with:
+          sofa_root: ${{ github.workspace }}/sofa
+          sofa_version: ${{ matrix.sofa_branch }}
+          sofa_scope: 'standard'
+          sofa_with_sofapython3: 'false'
+          python_version: '${{ matrix.python_version }}'
+
+      - name: Install SofaPython3
+        shell: bash
+        run: |
+          SofaPython3_INSTALL_DIR="$SOFA_ROOT/plugins/SofaPython3"
+          mkdir -p "${{ runner.temp }}/STLIB_tmp/zip" "${{ runner.temp }}/STLIB_tmp/binaries" "$SofaPython3_INSTALL_DIR"
+          url="https://github.com/guparan/SofaPython3/releases/download"
+          url="${url}/release-${RUN_BRANCH}/SofaPython3_${RUN_BRANCH}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}.zip"
+          echo "Getting SofaPython3 from $url"
+          curl --output "${{ runner.temp }}/STLIB_tmp/SofaPython3.zip" -L $url
+          unzip -qq "${{ runner.temp }}/STLIB_tmp/SofaPython3.zip" -d "${{ runner.temp }}/STLIB_tmp/binaries"
+          mv "${{ runner.temp }}"/STLIB_tmp/binaries/SofaPython3_*/* "$SofaPython3_INSTALL_DIR"
+
+      - name: Install STLIB
+        shell: bash
+        run: |
+          STLIB_INSTALL_DIR="$SOFA_ROOT/plugins/STLIB"
+          mkdir -p "${{ runner.temp }}/STLIB_tmp/zip" "${{ runner.temp }}/STLIB_tmp/binaries" "$STLIB_INSTALL_DIR"
+          url="https://github.com/guparan/STLIB/releases/download"
+          url="${url}/release-${RUN_BRANCH}/STLIB_${RUN_BRANCH}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}.zip"
+          echo "Getting STLIB from $url"
+          curl --output "${{ runner.temp }}/STLIB_tmp/STLIB.zip" -L $url
+          unzip -qq "${{ runner.temp }}/STLIB_tmp/STLIB.zip" -d "${{ runner.temp }}/STLIB_tmp/binaries"
+          mv "${{ runner.temp }}"/STLIB_tmp/binaries/STLIB_*/* "$STLIB_INSTALL_DIR"
+
+      - name: Install SoftRobots
+        shell: bash
+        run: |
+          SoftRobots_INSTALL_DIR="$SOFA_ROOT/plugins/SoftRobots"
+          mkdir -p "${{ runner.temp }}/SoftRobots_tmp/zip" "${{ runner.temp }}/SoftRobots_tmp/binaries" "$SoftRobots_INSTALL_DIR"
+          url="https://github.com/guparan/SoftRobots/releases/download"
+          url="${url}/release-${RUN_BRANCH}/SoftRobots_${RUN_BRANCH}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}.zip"
+          echo "Getting SoftRobots from $url"
+          curl --output "${{ runner.temp }}/SoftRobots_tmp/SoftRobots.zip" -L $url
+          unzip -qq "${{ runner.temp }}/SoftRobots_tmp/SoftRobots.zip" -d "${{ runner.temp }}/SoftRobots_tmp/binaries"
+          mv "${{ runner.temp }}"/SoftRobots_tmp/binaries/SoftRobots_*/* "$SoftRobots_INSTALL_DIR"
+
+      - name: Checkout source code
+        uses: actions/checkout@v2
+        with:
+          path: ${{ env.WORKSPACE_SRC_PATH }}
+      
+      - name: Install custom scripts and README
+        shell: bash
+        run: |
+          plugin_list_path="$SOFA_ROOT/lib/plugin_list.conf"
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            plugin_list_path="$SOFA_ROOT/bin/plugin_list.conf"
+          fi
+          echo "" >> $plugin_list_path
+          echo "SofaPython3 NO_VERSION" >> $plugin_list_path
+          echo "STLIB NO_VERSION" >> $plugin_list_path
+          echo "SoftRobots NO_VERSION" >> $plugin_list_path
+          
+          cp -f $WORKSPACE_SRC_PATH/*.md "$SOFA_ROOT"          
+
+      - name: Create artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: SOFA-RoboSoft2022_${{ steps.sofa.outputs.run_branch }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}
+          path: ${{ env.SOFA_ROOT }}
+
+  deploy:
+    name: Deploy artifacts
+    if: always() && startsWith(github.ref, 'refs/heads/') # we are on a branch (not a PR)
+    needs: [build-and-test]
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Get artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: artifacts
+
+      - name: Zip artifacts and set env vars
+        shell: bash
+        run: |
+          cd $SOFA_ROOT/plugins/artifacts
+          for artifact in *; do
+            zip $artifact.zip -r $artifact/*
+          done
+          RELEASE_DATE="$(date +'%Y-%m-%d (at %T UTC)')"
+          echo "RELEASE_DATE=$RELEASE_DATE" | tee -a $GITHUB_ENV
+
+      - name: Delete old release
+        uses: dev-drprasad/delete-tag-and-release@v0.2.0
+        with:
+          tag_name: ${{ env.RELEASE_TAGNAME }}
+          delete_release: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create new release
+        if: success() || failure()
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ github.ref_name }}
+          tag_name: release-${{ github.ref_name }}
+          fail_on_unmatched_files: true
+          body: |
+            Last updated on ${{ env.RELEASE_DATE }}
+          files: |
+            artifacts/SOFA-RoboSoft2022_*_Linux.zip
+            artifacts/SOFA-RoboSoft2022_*_Windows.zip
+            artifacts/SOFA-RoboSoft2022_*_macOS.zip
