@@ -29,7 +29,18 @@ jobs:
           SOFA_ROOT="$GITHUB_WORKSPACE/sofa"
           mkdir -p "$SOFA_ROOT"
           SOFA_ROOT="$(cd "$SOFA_ROOT" && pwd -W 2>/dev/null || pwd)"
-          echo "SOFA_ROOT=$SOFA_ROOT" | tee -a $GITHUB_ENV        
+          echo "SOFA_ROOT=$SOFA_ROOT" | tee -a $GITHUB_ENV
+          
+          if [ -n "${{ github.event.number }}" ]; then
+            RUN_BRANCH="PR-${{ github.event.number }}"
+          elif [ -n "${{ github.event.pull_request.number }}" ]; then
+            RUN_BRANCH="PR-${{ github.event.pull_request.number }}"
+          elif [ -n "${{ github.event.issue.number }}" ]; then
+            RUN_BRANCH="PR-${{ github.event.issue.number }}"
+          else
+            RUN_BRANCH="${GITHUB_REF#refs/heads/}"
+          fi
+          echo "RUN_BRANCH=$RUN_BRANCH" | tee -a $GITHUB_ENV
 
       - name: Download and install the latest SOFA ${{ matrix.sofa_branch }} binaries
         shell: bash
