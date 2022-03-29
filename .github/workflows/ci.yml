@@ -17,15 +17,50 @@ jobs:
         python_version: ['3.7', '3.8', '3.9', '3.10']
 
     steps:
-      - name: Setup SOFA and environment
-        id: sofa
-        uses: guparan/sofa-setup-action@ci_improve_workflow
-        with:
-          sofa_root: ${{ github.workspace }}/sofa
-          sofa_version: ${{ matrix.sofa_branch }}
-          sofa_scope: 'standard'
-          sofa_with_sofapython3: 'false'
-          python_version: '${{ matrix.python_version }}'
+      - name: Set env vars
+        shell: bash
+        run: |
+          SOFA_OS="$RUNNER_OS"
+          if [[ "$SOFA_OS" == "macOS" ]]; then
+            SOFA_OS="MacOS"
+          fi
+          echo "SOFA_OS=$SOFA_OS" | tee -a $GITHUB_ENV
+          
+          SOFA_ROOT="$GITHUB_WORKSPACE/sofa"
+          mkdir -p "$SOFA_ROOT"
+          SOFA_ROOT="$(cd "$SOFA_ROOT" && pwd -W 2>/dev/null || pwd)"
+          echo "SOFA_ROOT=$SOFA_ROOT" | tee -a $GITHUB_ENV        
+
+      - name: Download and install the latest SOFA ${{ matrix.sofa_branch }} binaries
+        shell: bash
+        run: |
+          # Download and install the latest SOFA ${{ matrix.sofa_branch }} binaries
+          if ! ls -a "$SOFA_ROOT"/* >/dev/null 2>&1; then
+            # directory does not exist or is empty
+            mkdir -p "${{ runner.temp }}/sofa_tmp/zip" "${{ runner.temp }}/sofa_tmp/binaries"
+            url="https://ci.inria.fr/sofa-ci-dev/job/nightly-generate-binaries/CI_BRANCH=${{ matrix.sofa_branch }},CI_SCOPE=standard/lastSuccessfulBuild/artifact/${SOFA_OS}/*zip*/${SOFA_OS}.zip"
+            echo "Getting SOFA from $url"
+            curl --output "${{ runner.temp }}/sofa_tmp/${SOFA_OS}.zip" -L $url
+            unzip -qq "${{ runner.temp }}"/sofa_tmp/${SOFA_OS}.zip -d "${{ runner.temp }}/sofa_tmp/zip"
+            unzip -qq "${{ runner.temp }}"/sofa_tmp/zip/${SOFA_OS}/SOFA_*.zip -d "${{ runner.temp }}/sofa_tmp/binaries"
+            $SUDO mkdir -p "$SOFA_ROOT"
+            $SUDO mv "${{ runner.temp }}"/sofa_tmp/binaries/SOFA_*/* "$SOFA_ROOT"
+          fi
+          echo '--------------------------------------------'
+          echo "SOFA successfully downloaded and installed in $SOFA_ROOT"
+          echo '---------------- SOFA_ROOT -----------------'
+          ls -la "$SOFA_ROOT"
+          echo '--------------- git-info.txt ---------------'
+          cat "$SOFA_ROOT"/git-info.txt 2>&1 || true
+      
+      - name: Remove SofaPython3 from SOFA binaries
+        shell: bash
+        run: |
+          # TODO: remove this step when SOFA "standard" no longer contains SP3
+          echo "Removing SofaPython3 from SOFA binaries (if any)"
+          rm -rf $SOFA_ROOT/plugins/SofaPython3*
+          rm -rf $SOFA_ROOT/bin/SofaPython3*
+          rm -rf $SOFA_ROOT/lib/SofaPython3*
 
       - name: Install SofaPython3
         shell: bash
@@ -45,7 +80,7 @@ jobs:
           STLIB_INSTALL_DIR="$SOFA_ROOT/plugins/STLIB"
           mkdir -p "${{ runner.temp }}/STLIB_tmp/zip" "${{ runner.temp }}/STLIB_tmp/binaries" "$STLIB_INSTALL_DIR"
           url="https://github.com/guparan/STLIB/releases/download"
-          url="${url}/release-${RUN_BRANCH}/STLIB_${RUN_BRANCH}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}.zip"
+          url="${url}/release-${RUN_BRANCH}/STLIB_${RUN_BRANCH}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}.zip"
           echo "Getting STLIB from $url"
           curl --output "${{ runner.temp }}/STLIB_tmp/STLIB.zip" -L $url
           unzip -qq "${{ runner.temp }}/STLIB_tmp/STLIB.zip" -d "${{ runner.temp }}/STLIB_tmp/binaries"
