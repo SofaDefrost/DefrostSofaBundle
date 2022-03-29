@@ -122,7 +122,7 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v2
         with:
-          path: ${{ env.WORKSPACE_SRC_PATH }}
+          path: src
       
       - name: Install custom scripts and README
         shell: bash
@@ -143,7 +143,7 @@ jobs:
           echo "STLIB NO_VERSION"       | tee -a "$plugin_list_path" || true
           echo "SoftRobots NO_VERSION"  | tee -a "$plugin_list_path" || true
           
-          cp -f $WORKSPACE_SRC_PATH/*.md "$SOFA_ROOT"
+          cp -f $GITHUB_WORKSPACE/src/*.md "$SOFA_ROOT"
           
           echo '-------------- SOFA_ROOT --------------'
           ls -la $SOFA_ROOT
