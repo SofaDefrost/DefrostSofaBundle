@@ -165,11 +165,20 @@ jobs:
       - name: Zip artifacts and set env vars
         shell: bash
         run: |
-          cd $SOFA_ROOT/plugins/artifacts
+          cd $GITHUB_WORKSPACE/artifacts
           for artifact in *; do
             zip $artifact.zip -r $artifact/*
           done
+          
+          RELEASE_NAME="${{ github.ref_name }}"
+          RELEASE_TAGNAME="release-${{ github.ref_name }}"
+          if [[ "${{ github.event.inputs.is_nightly }}" == "true" ]]; then
+              RELEASE_NAME="$RELEASE_NAME-nightly"
+              RELEASE_TAGNAME="$RELEASE_TAGNAME-nightly"
+          fi
           RELEASE_DATE="$(date +'%Y-%m-%d (at %T UTC)')"
+          echo "RELEASE_NAME=$RELEASE_NAME" | tee -a $GITHUB_ENV
+          echo "RELEASE_TAGNAME=$RELEASE_TAGNAME" | tee -a $GITHUB_ENV
           echo "RELEASE_DATE=$RELEASE_DATE" | tee -a $GITHUB_ENV
 
       - name: Delete old release
@@ -184,8 +193,8 @@ jobs:
         if: success() || failure()
         uses: softprops/action-gh-release@v1
         with:
-          name: ${{ github.ref_name }}
-          tag_name: release-${{ github.ref_name }}
+          name: ${{ env.RELEASE_NAME }}
+          tag_name: ${{ env.RELEASE_TAGNAME }}
           fail_on_unmatched_files: true
           body: |
             Last updated on ${{ env.RELEASE_DATE }}
