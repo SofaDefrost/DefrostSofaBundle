@@ -26,9 +26,10 @@ jobs:
           fi
           echo "SOFA_OS=$SOFA_OS" | tee -a $GITHUB_ENV
           
-          SOFA_ROOT="$GITHUB_WORKSPACE/sofa"
-          mkdir -p "$SOFA_ROOT"
-          SOFA_ROOT="$(cd "$SOFA_ROOT" && pwd -W 2>/dev/null || pwd)"
+          WORKSPACE="$(cd "$GITHUB_WORKSPACE" && pwd -W 2>/dev/null || pwd)"
+          echo "WORKSPACE=$WORKSPACE" | tee -a $GITHUB_ENV
+          
+          SOFA_ROOT="$WORKSPACE/sofa"
           echo "SOFA_ROOT=$SOFA_ROOT" | tee -a $GITHUB_ENV
           
           if [ -n "${{ github.event.number }}" ]; then
@@ -48,7 +49,7 @@ jobs:
           # Download and install the latest SOFA ${{ matrix.sofa_branch }} binaries
           if ! ls -a "$SOFA_ROOT"/* >/dev/null 2>&1; then
             # directory does not exist or is empty
-            mkdir -p "${{ runner.temp }}/sofa_tmp/zip" "${{ runner.temp }}/sofa_tmp/binaries"
+            mkdir -p "${{ runner.temp }}/sofa_tmp/zip" "${{ runner.temp }}/sofa_tmp/binaries" "$SOFA_ROOT"
             url="https://ci.inria.fr/sofa-ci-dev/job/nightly-generate-binaries/CI_BRANCH=${{ matrix.sofa_branch }},CI_SCOPE=standard/lastSuccessfulBuild/artifact/${SOFA_OS}/*zip*/${SOFA_OS}.zip"
             echo "Getting SOFA from $url"
             curl --output "${{ runner.temp }}/sofa_tmp/${SOFA_OS}.zip" -L $url
@@ -143,7 +144,7 @@ jobs:
           echo "STLIB NO_VERSION"       | tee -a "$plugin_list_path" || true
           echo "SoftRobots NO_VERSION"  | tee -a "$plugin_list_path" || true
           
-          cp -f $GITHUB_WORKSPACE/src/*.md "$SOFA_ROOT"
+          cp -f $WORKSPACE/src/*.md "$SOFA_ROOT"
           
           echo '-------------- SOFA_ROOT --------------'
           ls -la $SOFA_ROOT
@@ -154,7 +155,7 @@ jobs:
       - name: Create artifact
         uses: actions/upload-artifact@v2
         with:
-          name: SOFA-RoboSoft2022_${{ steps.sofa.outputs.run_branch }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}
+          name: SOFA-RoboSoft2022_${{ env.RUN_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}
           path: ${{ env.SOFA_ROOT }}
 
   deploy:
