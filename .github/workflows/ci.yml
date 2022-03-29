@@ -131,9 +131,17 @@ jobs:
           if [[ "$RUNNER_OS" == "Windows" ]]; then
             plugin_list_path="$SOFA_ROOT/bin/plugin_list.conf"
           fi
-          echo "SofaPython3 NO_VERSION" | tee -a "$plugin_list_path"
-          echo "STLIB NO_VERSION"       | tee -a "$plugin_list_path"
-          echo "SoftRobots NO_VERSION"  | tee -a "$plugin_list_path"
+          echo '------------------------'
+          ls -la $SOFA_ROOT/bin
+          echo '------------------------'
+          ls -la $SOFA_ROOT/lib
+          echo '------------------------'
+          touch "$plugin_list_path"
+          ls -la $plugin_list_path || true
+          echo '------------------------'
+          echo "SofaPython3 NO_VERSION" | tee -a "$plugin_list_path" || true
+          echo "STLIB NO_VERSION"       | tee -a "$plugin_list_path" || true
+          echo "SoftRobots NO_VERSION"  | tee -a "$plugin_list_path" || true
           
           cp -f $WORKSPACE_SRC_PATH/*.md "$SOFA_ROOT"
           
