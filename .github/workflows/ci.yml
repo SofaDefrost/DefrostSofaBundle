@@ -1,0 +1,176 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+
+jobs:
+  build-and-test:
+    name: Run on ${{ matrix.os }} with SOFA ${{ matrix.sofa_branch }} and python ${{ matrix.python_version }}
+    if: always() && startsWith(github.ref, 'refs/heads/') # we are on a branch (not a PR)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04, macos-10.15, windows-2019]
+        sofa_branch: [master]
+        python_version: ['3.7', '3.8', '3.9', '3.10']
+
+    steps:
+      - name: Set env vars
+        shell: bash
+        run: |
+          SOFA_OS="$RUNNER_OS"
+          if [[ "$SOFA_OS" == "macOS" ]]; then
+            SOFA_OS="MacOS"
+          fi
+          echo "SOFA_OS=$SOFA_OS" | tee -a $GITHUB_ENV
+          
+          WORKSPACE="$(cd "$GITHUB_WORKSPACE" && pwd -W 2>/dev/null || pwd)"
+          echo "WORKSPACE=$WORKSPACE" | tee -a $GITHUB_ENV
+          
+          SOFA_ROOT="$WORKSPACE/sofa"
+          echo "SOFA_ROOT=$SOFA_ROOT" | tee -a $GITHUB_ENV
+          
+          if [ -n "${{ github.event.number }}" ]; then
+            RUN_BRANCH="PR-${{ github.event.number }}"
+          elif [ -n "${{ github.event.pull_request.number }}" ]; then
+            RUN_BRANCH="PR-${{ github.event.pull_request.number }}"
+          elif [ -n "${{ github.event.issue.number }}" ]; then
+            RUN_BRANCH="PR-${{ github.event.issue.number }}"
+          else
+            RUN_BRANCH="${GITHUB_REF#refs/heads/}"
+          fi
+          echo "RUN_BRANCH=$RUN_BRANCH" | tee -a $GITHUB_ENV
+
+      - name: Download and install the latest SOFA ${{ matrix.sofa_branch }} binaries
+        shell: bash
+        run: |
+          # Download and install the latest SOFA ${{ matrix.sofa_branch }} binaries
+          if ! ls -a "$SOFA_ROOT"/* >/dev/null 2>&1; then
+            # directory does not exist or is empty
+            mkdir -p "${{ runner.temp }}/sofa_tmp/zip" "${{ runner.temp }}/sofa_tmp/binaries" "$SOFA_ROOT"
+            url="https://ci.inria.fr/sofa-ci-dev/job/nightly-generate-binaries/CI_BRANCH=${{ matrix.sofa_branch }},CI_SCOPE=standard/lastSuccessfulBuild/artifact/${SOFA_OS}/*zip*/${SOFA_OS}.zip"
+            echo "Getting SOFA from $url"
+            curl --output "${{ runner.temp }}/sofa_tmp/${SOFA_OS}.zip" -L $url
+            unzip -qq "${{ runner.temp }}"/sofa_tmp/${SOFA_OS}.zip -d "${{ runner.temp }}/sofa_tmp/zip"
+            unzip -qq "${{ runner.temp }}"/sofa_tmp/zip/${SOFA_OS}/SOFA_*.zip -d "${{ runner.temp }}/sofa_tmp/binaries"
+            $SUDO mkdir -p "$SOFA_ROOT"
+            $SUDO mv "${{ runner.temp }}"/sofa_tmp/binaries/SOFA_*/* "$SOFA_ROOT"
+          fi
+          echo '--------------------------------------------'
+          echo "SOFA successfully downloaded and installed in $SOFA_ROOT"
+          echo '--------------------------------------------'
+          ls -la $SOFA_ROOT
+      
+      - name: Remove SofaPython3 from SOFA binaries
+        shell: bash
+        run: |
+          # TODO: remove this step when SOFA "standard" no longer contains SP3
+          echo "Removing SofaPython3 from SOFA binaries (if any)"
+          rm -rf $SOFA_ROOT/plugins/SofaPython3*
+          rm -rf $SOFA_ROOT/bin/SofaPython3*
+          rm -rf $SOFA_ROOT/lib/SofaPython3*
+
+      - name: Install SofaPython3
+        shell: bash
+        run: |
+          SofaPython3_INSTALL_DIR="$SOFA_ROOT/plugins/SofaPython3"
+          mkdir -p "${{ runner.temp }}/STLIB_tmp/zip" "${{ runner.temp }}/STLIB_tmp/binaries" "$SofaPython3_INSTALL_DIR"
+          url="https://github.com/guparan/SofaPython3/releases/download"
+          url="${url}/release-${RUN_BRANCH}/SofaPython3_${RUN_BRANCH}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}.zip"
+          echo "Getting SofaPython3 from $url"
+          curl --output "${{ runner.temp }}/STLIB_tmp/SofaPython3.zip" -L $url
+          unzip -qq "${{ runner.temp }}/STLIB_tmp/SofaPython3.zip" -d "${{ runner.temp }}/STLIB_tmp/binaries"
+          mv "${{ runner.temp }}"/STLIB_tmp/binaries/SofaPython3_*/* "$SofaPython3_INSTALL_DIR"
+          echo "--------------------------------------------"
+          echo "SofaPython3 successfully downloaded and installed in $SofaPython3_INSTALL_DIR"
+          echo "--------------------------------------------"
+          ls -la $SofaPython3_INSTALL_DIR
+
+      - name: Install STLIB
+        shell: bash
+        run: |
+          STLIB_INSTALL_DIR="$SOFA_ROOT/plugins/STLIB"
+          mkdir -p "${{ runner.temp }}/STLIB_tmp/zip" "${{ runner.temp }}/STLIB_tmp/binaries" "$STLIB_INSTALL_DIR"
+          url="https://github.com/guparan/STLIB/releases/download"
+          url="${url}/release-${RUN_BRANCH}/STLIB_${RUN_BRANCH}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}.zip"
+          echo "Getting STLIB from $url"
+          curl --output "${{ runner.temp }}/STLIB_tmp/STLIB.zip" -L $url
+          unzip -qq "${{ runner.temp }}/STLIB_tmp/STLIB.zip" -d "${{ runner.temp }}/STLIB_tmp/binaries"
+          mv "${{ runner.temp }}"/STLIB_tmp/binaries/STLIB_*/* "$STLIB_INSTALL_DIR"
+          echo '--------------------------------------------'
+          echo "STLIB successfully downloaded and installed in $STLIB_INSTALL_DIR"
+          echo "--------------------------------------------"
+          ls -la $STLIB_INSTALL_DIR
+
+      - name: Install SoftRobots
+        shell: bash
+        run: |
+          SoftRobots_INSTALL_DIR="$SOFA_ROOT/plugins/SoftRobots"
+          mkdir -p "${{ runner.temp }}/SoftRobots_tmp/zip" "${{ runner.temp }}/SoftRobots_tmp/binaries" "$SoftRobots_INSTALL_DIR"
+          url="https://github.com/guparan/SoftRobots/releases/download"
+          url="${url}/release-${RUN_BRANCH}/SoftRobots_${RUN_BRANCH}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}.zip"
+          echo "Getting SoftRobots from $url"
+          curl --output "${{ runner.temp }}/SoftRobots_tmp/SoftRobots.zip" -L $url
+          unzip -qq "${{ runner.temp }}/SoftRobots_tmp/SoftRobots.zip" -d "${{ runner.temp }}/SoftRobots_tmp/binaries"
+          mv "${{ runner.temp }}"/SoftRobots_tmp/binaries/SoftRobots_*/* "$SoftRobots_INSTALL_DIR"
+          echo '--------------------------------------------'
+          echo "SoftRobots successfully downloaded and installed in $SoftRobots_INSTALL_DIR"
+          echo "--------------------------------------------"
+          ls -la $SoftRobots_INSTALL_DIR
+
+      - name: Checkout source code
+        uses: actions/checkout@v2
+        with:
+          path: src
+      
+      - name: Install custom scripts and README
+        shell: bash
+        run: |
+          if [ -e "$WORKSPACE/src/plugin_list.conf" ]; then
+            plugin_list_dest="$SOFA_ROOT/lib/plugin_list.conf"
+            if [[ "$RUNNER_OS" == "Windows" ]]; then
+              plugin_list_dest="$SOFA_ROOT/bin/plugin_list.conf"
+            fi
+            echo "" | tee -a "$plugin_list_dest"
+            cat "$WORKSPACE/src/plugin_list.conf" | tee -a "$plugin_list_dest"
+          fi          
+          cp -f $WORKSPACE/src/*.md "$SOFA_ROOT"
+          
+          echo '-------------- SOFA_ROOT --------------'
+          ls -la $SOFA_ROOT
+          echo '---------- SOFA_ROOT/plugins ----------'
+          ls -la $SOFA_ROOT/plugins
+          echo '---------------------------------------'
+
+      - name: Zip artifact and set env vars
+        shell: bash
+        run: |
+          ARTIFACT_NAME="SOFA-RoboSoft2022_${{ matrix.sofa_branch }}_python-${{ matrix.python_version }}_${{ runner.os }}"
+          mv $SOFA_ROOT $ARTIFACT_NAME
+          7z a $ARTIFACT_NAME.zip $ARTIFACT_NAME
+          echo "ARTIFACT_NAME=$ARTIFACT_NAME" | tee -a $GITHUB_ENV
+          
+          RELEASE_NAME="${{ github.ref_name }}"
+          RELEASE_TAGNAME="release-${{ github.ref_name }}"
+          if [[ "${{ github.event.inputs.is_nightly }}" == "true" ]]; then
+              RELEASE_NAME="$RELEASE_NAME-nightly"
+              RELEASE_TAGNAME="$RELEASE_TAGNAME-nightly"
+          fi
+          RELEASE_DATE="$(date +'%Y-%m-%d (at %T UTC)')"
+          echo "RELEASE_NAME=$RELEASE_NAME" | tee -a $GITHUB_ENV
+          echo "RELEASE_TAGNAME=$RELEASE_TAGNAME" | tee -a $GITHUB_ENV
+          echo "RELEASE_DATE=$RELEASE_DATE" | tee -a $GITHUB_ENV
+
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ env.RELEASE_NAME }}
+          tag_name: ${{ env.RELEASE_TAGNAME }}
+          fail_on_unmatched_files: true
+          body: |
+            Last updated on ${{ env.RELEASE_DATE }}
+          files: |
+            ${{ env.ARTIFACT_NAME }}.zip
