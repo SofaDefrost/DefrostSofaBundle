@@ -8,6 +8,7 @@ on:
 jobs:
   build-and-test:
     name: Run on ${{ matrix.os }} with SOFA ${{ matrix.sofa_branch }} and python ${{ matrix.python_version }}
+    if: always() && startsWith(github.ref, 'refs/heads/') # we are on a branch (not a PR)
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -144,31 +145,12 @@ jobs:
           ls -la $SOFA_ROOT/plugins
           echo '---------------------------------------'
 
-      - name: Create artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: SOFA-RoboSoft2022_${{ env.RUN_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}
-          path: ${{ env.SOFA_ROOT }}
-
-  deploy:
-    name: Deploy artifacts
-    if: always() && startsWith(github.ref, 'refs/heads/') # we are on a branch (not a PR)
-    needs: [build-and-test]
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - name: Get artifacts
-        uses: actions/download-artifact@v2
-        with:
-          path: artifacts
-
-      - name: Zip artifacts and set env vars
+      - name: Zip artifact and set env vars
         shell: bash
         run: |
-          cd $GITHUB_WORKSPACE/artifacts
-          for artifact in *; do
-            zip $artifact.zip -r $artifact/*
-          done
+          ARTIFACT_NAME="SOFA-RoboSoft2022_${{ env.RUN_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}"
+          zip $ARTIFACT_NAME.zip -r $SOFA_ROOT/*
+          echo "ARTIFACT_NAME=$ARTIFACT_NAME" | tee -a $GITHUB_ENV
           
           RELEASE_NAME="${{ github.ref_name }}"
           RELEASE_TAGNAME="release-${{ github.ref_name }}"
@@ -181,16 +163,7 @@ jobs:
           echo "RELEASE_TAGNAME=$RELEASE_TAGNAME" | tee -a $GITHUB_ENV
           echo "RELEASE_DATE=$RELEASE_DATE" | tee -a $GITHUB_ENV
 
-      - name: Delete old release
-        uses: dev-drprasad/delete-tag-and-release@v0.2.0
-        with:
-          tag_name: ${{ env.RELEASE_TAGNAME }}
-          delete_release: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create new release
-        if: success() || failure()
+      - name: Create release
         uses: softprops/action-gh-release@v1
         with:
           name: ${{ env.RELEASE_NAME }}
@@ -199,6 +172,4 @@ jobs:
           body: |
             Last updated on ${{ env.RELEASE_DATE }}
           files: |
-            artifacts/SOFA-RoboSoft2022_*_Linux.zip
-            artifacts/SOFA-RoboSoft2022_*_Windows.zip
-            artifacts/SOFA-RoboSoft2022_*_macOS.zip
+            ${{ env.ARTIFACT_NAME }}.zip
