@@ -6,7 +6,7 @@ on:
       remove_release:
         description: 'Remove existing release before starting?'
         required: false
-        default: false
+        default: 'false'
         type: boolean
   pull_request:
   push:
@@ -14,7 +14,7 @@ on:
 jobs:
   remove-release:
     name: Remove release
-    if: '${{ github.event.inputs.remove_release }}' == 'true'
+    if: github.event.inputs.remove_release && github.event.inputs.remove_release == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Delete old release
