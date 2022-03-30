@@ -148,7 +148,7 @@ jobs:
       - name: Zip artifact and set env vars
         shell: bash
         run: |
-          ARTIFACT_NAME="SOFA-RoboSoft2022_${{ env.RUN_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}"
+          ARTIFACT_NAME="SOFA-RoboSoft2022_${{ matrix.sofa_branch }}_python-${{ matrix.python_version }}_${{ runner.os }}"
           mv $SOFA_ROOT $ARTIFACT_NAME
           7z a $ARTIFACT_NAME.zip $ARTIFACT_NAME
           echo "ARTIFACT_NAME=$ARTIFACT_NAME" | tee -a $GITHUB_ENV
