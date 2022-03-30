@@ -149,7 +149,7 @@ jobs:
         shell: bash
         run: |
           ARTIFACT_NAME="SOFA-RoboSoft2022_${{ env.RUN_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}"
-          zip $ARTIFACT_NAME.zip -r $SOFA_ROOT/*
+          7z a $ARTIFACT_NAME.zip $SOFA_ROOT/*
           echo "ARTIFACT_NAME=$ARTIFACT_NAME" | tee -a $GITHUB_ENV
           
           RELEASE_NAME="${{ github.ref_name }}"
