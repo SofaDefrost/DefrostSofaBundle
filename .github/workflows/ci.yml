@@ -2,10 +2,29 @@ name: CI
 
 on:
   workflow_dispatch:
+    inputs:
+      remove_release:
+        description: 'Remove existing release before starting?'
+        required: false
+        default: false
+        type: boolean
   pull_request:
   push:
 
 jobs:
+  remove-release:
+    name: Remove release
+    if: '${{ github.event.inputs.remove_release }}' == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete old release
+        uses: dev-drprasad/delete-tag-and-release@v0.2.0
+        with:
+          tag_name: release-${{ github.ref_name }}
+          delete_release: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
   build-and-test:
     name: Run on ${{ matrix.os }} with SOFA ${{ matrix.sofa_branch }} and python ${{ matrix.python_version }}
     if: always() && startsWith(github.ref, 'refs/heads/') # we are on a branch (not a PR)
@@ -73,7 +92,7 @@ jobs:
           rm -rf $SOFA_ROOT/bin/SofaPython3*
           rm -rf $SOFA_ROOT/lib/SofaPython3*
 
-      - name: Install SofaPython3
+      - name: Install SofaPython3_${{ env.RUN_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}
         shell: bash
         run: |
           SofaPython3_INSTALL_DIR="$SOFA_ROOT/plugins/SofaPython3"
@@ -89,7 +108,7 @@ jobs:
           echo "--------------------------------------------"
           ls -la $SofaPython3_INSTALL_DIR
 
-      - name: Install STLIB
+      - name: Install STLIB_${{ env.RUN_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}
         shell: bash
         run: |
           STLIB_INSTALL_DIR="$SOFA_ROOT/plugins/STLIB"
@@ -105,7 +124,7 @@ jobs:
           echo "--------------------------------------------"
           ls -la $STLIB_INSTALL_DIR
 
-      - name: Install SoftRobots
+      - name: Install SoftRobots_${{ env.RUN_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}
         shell: bash
         run: |
           SoftRobots_INSTALL_DIR="$SOFA_ROOT/plugins/SoftRobots"
