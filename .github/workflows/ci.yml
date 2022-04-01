@@ -63,7 +63,7 @@ jobs:
           fi
           echo "RUN_BRANCH=$RUN_BRANCH" | tee -a $GITHUB_ENV
 
-      - name: Download and install the latest SOFA ${{ matrix.sofa_branch }} binaries
+      - name: Download-Install the latest SOFA ${{ matrix.sofa_branch }} binaries
         shell: bash
         run: |
           # Download and install the latest SOFA ${{ matrix.sofa_branch }} binaries
@@ -92,7 +92,7 @@ jobs:
           rm -rf $SOFA_ROOT/bin/SofaPython3*
           rm -rf $SOFA_ROOT/lib/SofaPython3*
 
-      - name: Install SofaPython3_${{ env.RUN_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}
+      - name: Download-Install SofaPython3_${{ env.RUN_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}
         shell: bash
         run: |
           SofaPython3_INSTALL_DIR="$SOFA_ROOT/plugins/SofaPython3"
@@ -108,7 +108,7 @@ jobs:
           echo "--------------------------------------------"
           ls -la $SofaPython3_INSTALL_DIR
 
-      - name: Install STLIB_${{ env.RUN_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}
+      - name: Download-Install STLIB_${{ env.RUN_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}
         shell: bash
         run: |
           STLIB_INSTALL_DIR="$SOFA_ROOT/plugins/STLIB"
@@ -124,7 +124,7 @@ jobs:
           echo "--------------------------------------------"
           ls -la $STLIB_INSTALL_DIR
 
-      - name: Install SoftRobots_${{ env.RUN_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}
+      - name: Download-Install SoftRobots_${{ env.RUN_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}
         shell: bash
         run: |
           SoftRobots_INSTALL_DIR="$SOFA_ROOT/plugins/SoftRobots"
@@ -152,20 +152,13 @@ jobs:
         shell: bash
         run: |
           SoftRobotsInverse_INSTALL_DIR="$SOFA_ROOT/plugins/SoftRobots.Inverse"
-          
-          ls -la "$WORKSPACE"
-          
-          #mkdir -p "${{ runner.temp }}/SoftRobots.Inverse_tmp/zip" "${{ runner.temp }}/SoftRobots.Inverse_tmp/binaries" "$SoftRobotsInverse_INSTALL_DIR"
-          #url="https://github.com/guparan/SoftRobots.Inverse/releases/download"
-          #url="${url}/release-${RUN_BRANCH}/SoftRobots.Inverse_${RUN_BRANCH}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}.zip"
-          #echo "Getting SoftRobots.Inverse from $url"
-          #curl --header "Authorization: token ${{ secrets.GUPARAN_RELEASES_TOKEN }}" --output "${{ runner.temp }}/SoftRobots.Inverse_tmp/SoftRobots.Inverse.zip" -L $url
-          #unzip -qq "${{ runner.temp }}/SoftRobots.Inverse_tmp/SoftRobots.Inverse.zip" -d "${{ runner.temp }}/SoftRobots.Inverse_tmp/binaries"
-          #mv "${{ runner.temp }}"/SoftRobots.Inverse_tmp/binaries/SoftRobots.Inverse_*/* "$SoftRobotsInverse_INSTALL_DIR"
-          #echo '--------------------------------------------'
-          #echo "SoftRobots.Inverse successfully downloaded and installed in $SoftRobotsInverse_INSTALL_DIR"
-          #echo "--------------------------------------------"
-          #ls -la $SoftRobotsInverse_INSTALL_DIR
+          mkdir -p "${{ runner.temp }}/SoftRobots.Inverse_tmp/zip" "${{ runner.temp }}/SoftRobots.Inverse_tmp/binaries" "$SoftRobotsInverse_INSTALL_DIR"
+          unzip -qq SoftRobots.Inverse_*.zip -d "${{ runner.temp }}/SoftRobots.Inverse_tmp/binaries"
+          mv "${{ runner.temp }}"/SoftRobots.Inverse_tmp/binaries/SoftRobots.Inverse_*/* "$SoftRobotsInverse_INSTALL_DIR"
+          echo '--------------------------------------------'
+          echo "SoftRobots.Inverse successfully downloaded and installed in $SoftRobotsInverse_INSTALL_DIR"
+          echo "--------------------------------------------"
+          ls -la $SoftRobotsInverse_INSTALL_DIR
 
       - name: Checkout source code
         uses: actions/checkout@v2
