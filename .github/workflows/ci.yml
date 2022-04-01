@@ -108,6 +108,7 @@ jobs:
           echo "SofaPython3 successfully downloaded and installed in $SofaPython3_INSTALL_DIR"
           echo "--------------------------------------------"
           ls -la $SofaPython3_INSTALL_DIR
+          cp $SofaPython3_INSTALL_DIR/bin/*.dll $SOFA_ROOT/bin || true
 
       - name: Download-Install STLIB_${{ env.BINARIES_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}
         shell: bash
@@ -124,6 +125,7 @@ jobs:
           echo "STLIB successfully downloaded and installed in $STLIB_INSTALL_DIR"
           echo "--------------------------------------------"
           ls -la $STLIB_INSTALL_DIR
+          cp $STLIB_INSTALL_DIR/bin/*.dll $SOFA_ROOT/bin || true
 
       - name: Download-Install SoftRobots_${{ env.BINARIES_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}
         shell: bash
@@ -140,6 +142,7 @@ jobs:
           echo "SoftRobots successfully downloaded and installed in $SoftRobots_INSTALL_DIR"
           echo "--------------------------------------------"
           ls -la $SoftRobots_INSTALL_DIR
+          cp $SoftRobots_INSTALL_DIR/bin/*.dll $SOFA_ROOT/bin || true
           
       - name: Download SoftRobots.Inverse_${{ env.BINARIES_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}
         uses: robinraju/release-downloader@v1.3
@@ -160,6 +163,7 @@ jobs:
           echo "SoftRobots.Inverse successfully downloaded and installed in $SoftRobotsInverse_INSTALL_DIR"
           echo "--------------------------------------------"
           ls -la $SoftRobotsInverse_INSTALL_DIR
+          cp $SoftRobotsInverse_INSTALL_DIR/bin/*.dll $SOFA_ROOT/bin || true
 
       - name: Checkout source code
         uses: actions/checkout@v2
