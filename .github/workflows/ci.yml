@@ -32,9 +32,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-10.15, windows-2019]
+        os: [ubuntu-20.04] #, macos-10.15, windows-2019]
         sofa_branch: [robosoft2022]
-        python_version: ['3.7', '3.8', '3.9', '3.10']
+        python_version: ['3.7'] #, '3.8', '3.9', '3.10']
 
     steps:
       - name: Set env vars
@@ -139,6 +139,22 @@ jobs:
           echo "SoftRobots successfully downloaded and installed in $SoftRobots_INSTALL_DIR"
           echo "--------------------------------------------"
           ls -la $SoftRobots_INSTALL_DIR
+
+      - name: Install SoftRobots.Inverse_${{ env.RUN_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}
+        shell: bash
+        run: |
+          SoftRobotsInverse_INSTALL_DIR="$SOFA_ROOT/plugins/SoftRobots.Inverse"
+          mkdir -p "${{ runner.temp }}/SoftRobots.Inverse_tmp/zip" "${{ runner.temp }}/SoftRobots.Inverse_tmp/binaries" "$SoftRobotsInverse_INSTALL_DIR"
+          url="https://github.com/sofabot/SoftRobots.Inverse/releases/download"
+          url="${url}/release-${RUN_BRANCH}/SoftRobots.Inverse_${RUN_BRANCH}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}.zip"
+          echo "Getting SoftRobots.Inverse from $url"
+          curl --header "Authorization: token ${{ secrets.SOFABOT_RELEASES_TOKEN }}" --output "${{ runner.temp }}/SoftRobots.Inverse_tmp/SoftRobots.Inverse.zip" -L $url
+          unzip -qq "${{ runner.temp }}/SoftRobots.Inverse_tmp/SoftRobots.Inverse.zip" -d "${{ runner.temp }}/SoftRobots.Inverse_tmp/binaries"
+          mv "${{ runner.temp }}"/SoftRobots.Inverse_tmp/binaries/SoftRobots.Inverse_*/* "$SoftRobotsInverse_INSTALL_DIR"
+          echo '--------------------------------------------'
+          echo "SoftRobots.Inverse successfully downloaded and installed in $SoftRobotsInverse_INSTALL_DIR"
+          echo "--------------------------------------------"
+          ls -la $SoftRobotsInverse_INSTALL_DIR
 
       - name: Checkout source code
         uses: actions/checkout@v2
