@@ -2,10 +2,27 @@ name: CI
 
 on:
   workflow_dispatch:
-  pull_request:
-  push:
+    inputs:
+      remove_release:
+        description: 'Remove existing release before starting?'
+        required: false
+        default: 'false'
+        type: boolean
 
 jobs:
+  remove-release:
+    name: Remove release
+    if: github.event.inputs.remove_release && github.event.inputs.remove_release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete old release
+        uses: dev-drprasad/delete-tag-and-release@v0.2.0
+        with:
+          tag_name: release-${{ github.ref_name }}
+          delete_release: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
   build-and-test:
     name: Run on ${{ matrix.os }} with SOFA ${{ matrix.sofa_branch }} and python ${{ matrix.python_version }}
     if: always() && startsWith(github.ref, 'refs/heads/') # we are on a branch (not a PR)
@@ -14,7 +31,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04, macos-10.15, windows-2019]
-        sofa_branch: [master]
+        sofa_branch: [robosoft2022]
         python_version: ['3.7', '3.8', '3.9', '3.10']
 
     steps:
@@ -44,7 +61,7 @@ jobs:
           fi
           echo "RUN_BRANCH=$RUN_BRANCH" | tee -a $GITHUB_ENV
 
-      - name: Download and install the latest SOFA ${{ matrix.sofa_branch }} binaries
+      - name: Download-Install the latest SOFA ${{ matrix.sofa_branch }} binaries
         shell: bash
         run: |
           # Download and install the latest SOFA ${{ matrix.sofa_branch }} binaries
@@ -73,7 +90,7 @@ jobs:
           rm -rf $SOFA_ROOT/bin/SofaPython3*
           rm -rf $SOFA_ROOT/lib/SofaPython3*
 
-      - name: Install SofaPython3
+      - name: Download-Install SofaPython3_${{ env.RUN_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}
         shell: bash
         run: |
           SofaPython3_INSTALL_DIR="$SOFA_ROOT/plugins/SofaPython3"
@@ -89,7 +106,7 @@ jobs:
           echo "--------------------------------------------"
           ls -la $SofaPython3_INSTALL_DIR
 
-      - name: Install STLIB
+      - name: Download-Install STLIB_${{ env.RUN_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}
         shell: bash
         run: |
           STLIB_INSTALL_DIR="$SOFA_ROOT/plugins/STLIB"
@@ -105,7 +122,7 @@ jobs:
           echo "--------------------------------------------"
           ls -la $STLIB_INSTALL_DIR
 
-      - name: Install SoftRobots
+      - name: Download-Install SoftRobots_${{ env.RUN_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}
         shell: bash
         run: |
           SoftRobots_INSTALL_DIR="$SOFA_ROOT/plugins/SoftRobots"
@@ -120,6 +137,26 @@ jobs:
           echo "SoftRobots successfully downloaded and installed in $SoftRobots_INSTALL_DIR"
           echo "--------------------------------------------"
           ls -la $SoftRobots_INSTALL_DIR
+          
+      - name: Download SoftRobots.Inverse_${{ env.RUN_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}
+        uses: robinraju/release-downloader@v1.3
+        with:
+          repository: 'guparan/SoftRobots.Inverse'
+          tag: 'release-${{ env.RUN_BRANCH }}'
+          fileName: 'SoftRobots.Inverse_${{ env.RUN_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}.zip'
+          token: '${{ secrets.GUPARAN_RELEASES_TOKEN }}'
+
+      - name: Install SoftRobots.Inverse_${{ env.RUN_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}
+        shell: bash
+        run: |
+          SoftRobotsInverse_INSTALL_DIR="$SOFA_ROOT/plugins/SoftRobots.Inverse"
+          mkdir -p "${{ runner.temp }}/SoftRobots.Inverse_tmp/zip" "${{ runner.temp }}/SoftRobots.Inverse_tmp/binaries" "$SoftRobotsInverse_INSTALL_DIR"
+          unzip -qq SoftRobots.Inverse_*.zip -d "${{ runner.temp }}/SoftRobots.Inverse_tmp/binaries"
+          mv "${{ runner.temp }}"/SoftRobots.Inverse_tmp/binaries/SoftRobots.Inverse_*/* "$SoftRobotsInverse_INSTALL_DIR"
+          echo '--------------------------------------------'
+          echo "SoftRobots.Inverse successfully downloaded and installed in $SoftRobotsInverse_INSTALL_DIR"
+          echo "--------------------------------------------"
+          ls -la $SoftRobotsInverse_INSTALL_DIR
 
       - name: Checkout source code
         uses: actions/checkout@v2
@@ -148,7 +185,7 @@ jobs:
       - name: Zip artifact and set env vars
         shell: bash
         run: |
-          ARTIFACT_NAME="SOFA-RoboSoft2022_${{ matrix.sofa_branch }}_python-${{ matrix.python_version }}_${{ runner.os }}"
+          ARTIFACT_NAME="SOFA_${{ matrix.sofa_branch }}_python-${{ matrix.python_version }}_${{ runner.os }}"
           mv $SOFA_ROOT $ARTIFACT_NAME
           7z a $ARTIFACT_NAME.zip $ARTIFACT_NAME
           echo "ARTIFACT_NAME=$ARTIFACT_NAME" | tee -a $GITHUB_ENV
