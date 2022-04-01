@@ -173,15 +173,22 @@ jobs:
       - name: Install custom scripts and README
         shell: bash
         run: |
-          if [ -e "$WORKSPACE/src/plugin_list.conf" ]; then
-            plugin_list_dest="$SOFA_ROOT/lib/plugin_list.conf"
-            if [[ "$RUNNER_OS" == "Windows" ]]; then
-              plugin_list_dest="$SOFA_ROOT/bin/plugin_list.conf"
-            fi
-            echo "" | tee -a "$plugin_list_dest"
-            cat "$WORKSPACE/src/plugin_list.conf" | tee -a "$plugin_list_dest"
-          fi          
+          plugin_list_dest="$SOFA_ROOT/lib/plugin_list.conf"
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            plugin_list_dest="$SOFA_ROOT/bin/plugin_list.conf"
+          fi
+          echo '' | tee -a "$plugin_list_dest"
+          echo 'SofaPython3 NO_VERSION' | tee -a "$plugin_list_dest"
+          echo 'STLIB NO_VERSION' | tee -a "$plugin_list_dest"
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            echo 'SoftRobots.Inverse NO_VERSION' | tee -a "$plugin_list_dest"
+            echo 'SoftRobots NO_VERSION' | tee -a "$plugin_list_dest"
+          else
+            echo 'SoftRobots NO_VERSION' | tee -a "$plugin_list_dest"
+            echo 'SoftRobots.Inverse NO_VERSION' | tee -a "$plugin_list_dest"
+          fi
           cp -f $WORKSPACE/src/*.md "$SOFA_ROOT"
+          cp -f $WORKSPACE/workshop/* "$SOFA_ROOT"
           
           echo '-------------- SOFA_ROOT --------------'
           ls -la $SOFA_ROOT
