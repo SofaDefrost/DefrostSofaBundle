@@ -147,10 +147,10 @@ jobs:
       - name: Download SoftRobots.Inverse_${{ env.BINARIES_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}
         uses: robinraju/release-downloader@v1.3
         with:
-          repository: 'SofaDefrost/SoftRobots.Inverse'
+          repository: 'sofabot/SoftRobots.Inverse'
           tag: 'release-${{ env.BINARIES_BRANCH }}'
           fileName: 'SoftRobots.Inverse_${{ env.BINARIES_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}.zip'
-          #token: '${{ secrets.SOFADEFROST_RELEASES_TOKEN }}'
+          token: '${{ secrets.SOFABOT_RELEASES_TOKEN }}'
 
       - name: Install SoftRobots.Inverse_${{ env.BINARIES_BRANCH }}_python-${{ matrix.python_version }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}
         shell: bash
