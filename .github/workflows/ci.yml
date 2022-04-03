@@ -188,7 +188,7 @@ jobs:
             echo 'SoftRobots.Inverse NO_VERSION' | tee -a "$plugin_list_dest"
           fi
           cp -f $WORKSPACE/src/*.md "$SOFA_ROOT"
-          cp -f $WORKSPACE/workshop/* "$SOFA_ROOT"
+          cp -f $WORKSPACE/src/workshop/* "$SOFA_ROOT"
           
           echo '-------------- SOFA_ROOT --------------'
           ls -la $SOFA_ROOT
