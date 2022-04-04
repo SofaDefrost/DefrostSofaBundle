@@ -20,7 +20,8 @@ To open a Terminal: Start > type "cmd" > press Enter
 
 2. Install **python + pip**  
    Open a Terminal and run `python -V`  
-   If the command fails or shows a version that is not in [3.7 ; 3.10], install one of these compatible versions:  
+   If the command shows a version that is in [3.7 ; 3.10], skip to step 3.  
+   Else, install one of these compatible versions:  
    - [python 3.7 (amd64)](https://www.python.org/ftp/python/3.7.9/python-3.7.9-amd64.exe)  
    - [python 3.8 (amd64)](https://www.python.org/ftp/python/3.8.10/python-3.8.10-amd64.exe)  
    - [python 3.9 (amd64)](https://www.python.org/ftp/python/3.9.12/python-3.9.12-amd64.exe)  
@@ -53,16 +54,17 @@ bin\runSofa.exe
 ### Install the dependencies
 
 1. Install **libopengl0**  
-   sudo apt install libopengl0
+   `sudo apt install libopengl0`
    
 2. Install **python + pip**  
    Open a Terminal and run `python3 -V`  
-   If the command fails or shows a version that is not in [3.7 ; 3.10], search which compatible version is proposed by your package manager:  
+   If the command shows a version that is in [3.7 ; 3.9], skip to step 3.  
+   Else, search which compatible version is proposed by your package manager:  
    ```bash
    sudo apt update
    sudo apt info python3 | grep -i 'version: '
    ```
-   If the proposed version is in [3.7 ; 3.10] then install it  
+   If the proposed version is in [3.7 ; 3.9] then install it  
    ```bash
    sudo apt install python3-dev python3-distutils
    curl -L https://bootstrap.pypa.io/pip/get-pip.py --output /tmp/get-pip3.py
@@ -100,7 +102,8 @@ export PYTHONPATH=plugins/SofaPython3/lib/python3/site-packages
 
 1. Install **python + pip**  
    Open a Terminal and run `python3 -V`  
-   If the command fails or shows a version that is not in [3.7 ; 3.10], search which compatible version is proposed by your package manager:   
+   If the command shows a version that is in [3.7 ; 3.10], skip to step 2.  
+   Else, search which compatible version is proposed by your package manager:   
    ```bash
    brew update
    brew info python
