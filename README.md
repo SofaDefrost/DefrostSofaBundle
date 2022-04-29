@@ -32,6 +32,12 @@ To open a Terminal: Start > type "cmd" > press Enter
 3. Install **numpy + Scipy**  
    Open a Terminal and run `python -m pip install numpy scipy`
 
+4. You may need to edit the system environment variables:
+   - Create a system variable SOFA_ROOT and set it to <SOFA-install-directory>
+   - Create a system variable PYTHON_ROOT and set it to <Python3-install-directory>
+   - Create a system variable PYTHONPATH and set it to %SOFA_ROOT%\plugins\SofaPython3\lib\python3\site-packages
+   - Edit the system variable Path and add at the end ;%PYTHON_ROOT%;%PYTHON_ROOT%\DLLs;%PYTHON_ROOT%\Lib;%SOFA_ROOT%\bin;
+
 ### Install the SOFA RoboSoft bundle
 
 Go to https://github.com/SofaDefrost/RoboSoft2022/releases/tag/release-main  
