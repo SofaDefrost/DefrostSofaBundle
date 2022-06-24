@@ -91,7 +91,7 @@ Open a Terminal and run
 ```bash
 cd ~/Desktop/SOFA_robosoft2022_*
 export PYTHONPATH=plugins/SofaPython3/lib/python3/site-packages 
-./bin/runSofa.exe
+./bin/runSofa
 ```
 
 ----------------------------------------
@@ -133,5 +133,5 @@ Open a Terminal and run
 ```bash
 cd ~/SOFA_robosoft2022_*
 export PYTHONPATH=plugins/SofaPython3/lib/python3/site-packages 
-./bin/runSofa.exe
+./bin/runSofa
 ```
