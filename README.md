@@ -1,4 +1,4 @@
-# RoboSoft2022
+# DefrostSofaBundle2022
 
 This is a bundle of SOFA binaries specially prepared for RoboSoft 2022 workshop.  
 The bundle contains:
