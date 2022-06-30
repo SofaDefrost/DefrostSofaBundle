@@ -1,12 +1,15 @@
-# RoboSoft2022
+# Defrost SOFA Bundle
 
-This is a bundle of SOFA binaries specially prepared for RoboSoft 2022 workshop.  
+This is a bundle of SOFA binaries specially intented for soft robotics.  
 The bundle contains:
-- sofa-framework/sofa@robosoft2022 (snapshot from master, at commit 479fd27b, 30 March 2022)
-- sofa-framework/SofaPython3@robosoft2022 (synced with master)
-- SofaDefrost/STLIB@robosoft2022 (synced with master)
-- SofaDefrost/SoftRobots@robosoft2022 (synced with master)
-- sofabot/SoftRobots.Inverse@robosoft2022 (private repository)
+- [SOFA](https://github.com/sofa-framework/sofa)
+- [SofaPython3](https://github.com/sofa-framework/SofaPython3)
+- [STLIB](https://github.com/SofaDefrost/STLIB)
+- [SoftRobots](https://github.com/SofaDefrost/SoftRobots)
+- SoftRobots.Inverse (private repository)
+- [BeamAdapter](https://github.com/sofa-framework/BeamAdapter)
+- [Cosserat](https://github.com/SofaDefrost/plugin.Cosserat)
+- [ModelOrderReduction](https://github.com/SofaDefrost/ModelOrderReduction)
 
 ----------------------------------------
 
@@ -40,7 +43,7 @@ To open a Terminal: Start > type "cmd" > press Enter
 
 ### Install the SOFA RoboSoft bundle
 
-Go to https://github.com/SofaDefrost/RoboSoft2022/releases/tag/release-main  
+Go to https://github.com/SofaDefrost/DefrostSofaBundle/releases/
 Download the ZIP corresponding to your system and the version of python you just installed.  
 Extract the ZIP on your Desktop.
 
@@ -48,8 +51,9 @@ Extract the ZIP on your Desktop.
 
 Open a Terminal and run  
 ```cmd
-cd %HOMEPATH%\Desktop\SOFA_robosoft2022_*
+cd %HOMEPATH%\Desktop\SOFA_BUNDLE_*
 set PYTHONPATH=plugins\SofaPython3\lib\python3\site-packages
+export PYTHONPATH=$PYTHONPATH$;plugins\STLIB\lib\python3\site-packages 
 bin\runSofa.exe
 ```
 
@@ -85,9 +89,9 @@ bin\runSofa.exe
    python3 -m pip install numpy scipy
    ```
 
-### Install the SOFA RoboSoft bundle
+### Install the SOFA bundle for soft robotics
 
-Go to https://github.com/SofaDefrost/RoboSoft2022/releases/tag/release-main  
+Go to https://github.com/SofaDefrost/DefrostSofaBundle/releases/
 Download the ZIP corresponding to your system and the version of python you just installed.  
 Extract the ZIP on your Desktop.
 
@@ -95,9 +99,10 @@ Extract the ZIP on your Desktop.
 
 Open a Terminal and run  
 ```bash
-cd ~/Desktop/SOFA_robosoft2022_*
+cd ~/Desktop/SOFA_BUNDLE_*
 export PYTHONPATH=plugins/SofaPython3/lib/python3/site-packages 
-./bin/runSofa.exe
+export PYTHONPATH=$PYTHONPATH$;plugins/STLIB/lib/python3/site-packages 
+./bin/runSofa
 ```
 
 ----------------------------------------
@@ -127,9 +132,9 @@ export PYTHONPATH=plugins/SofaPython3/lib/python3/site-packages
    python3 -m pip install numpy scipy
    ```
 
-### Install the SOFA RoboSoft bundle
+### Install the SOFA bundle for soft robotics
 
-Go to https://github.com/SofaDefrost/RoboSoft2022/releases/tag/release-main  
+Go to https://github.com/SofaDefrost/DefrostSofaBundle/releases/
 Download the ZIP corresponding to your system and the version of python you just installed.  
 Extract the ZIP in your User folder.  
 
@@ -137,7 +142,8 @@ Extract the ZIP in your User folder.
 
 Open a Terminal and run  
 ```bash
-cd ~/SOFA_robosoft2022_*
-export PYTHONPATH=plugins/SofaPython3/lib/python3/site-packages 
-./bin/runSofa.exe
+cd ~/SOFA_BUNDLE_*
+export PYTHONPATH=plugins/SofaPython3/lib/python3/site-packages
+export PYTHONPATH=$PYTHONPATH$;plugins/STLIB/lib/python3/site-packages 
+./bin/runSofa
 ```
