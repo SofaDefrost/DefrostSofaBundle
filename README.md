@@ -47,7 +47,7 @@ Open a Terminal and run
 ```cmd
 cd %HOMEPATH%\Desktop\SOFA_BUNDLE_*
 set PYTHONPATH=plugins\SofaPython3\lib\python3\site-packages
-export PYTHONPATH=$PYTHONPATH$;plugins\STLIB\lib\python3\site-packages 
+export PYTHONPATH=%PYTHONPATH%:plugins\STLIB\lib\python3\site-packages 
 bin\runSofa.exe
 ```
 
@@ -95,7 +95,7 @@ Open a Terminal and run
 ```bash
 cd ~/Desktop/SOFA_BUNDLE_*
 export PYTHONPATH=plugins/SofaPython3/lib/python3/site-packages 
-export PYTHONPATH=$PYTHONPATH$;plugins/STLIB/lib/python3/site-packages 
+export PYTHONPATH=$PYTHONPATH:plugins/STLIB/lib/python3/site-packages 
 ./bin/runSofa
 ```
 
@@ -137,7 +137,7 @@ Extract the ZIP in your User folder.
 Open a Terminal and run  
 ```bash
 cd ~/SOFA_BUNDLE_*
-export PYTHONPATH=plugins/SofaPython3/lib/python3/site-packages
-export PYTHONPATH=$PYTHONPATH$;plugins/STLIB/lib/python3/site-packages 
+export PYTHONPATH="plugins/SofaPython3/lib/python3/site-packages"
+export PYTHONPATH=$PYTHONPATH:"plugins/STLIB/lib/python3/site-packages" 
 ./bin/runSofa
 ```
