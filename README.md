@@ -47,7 +47,7 @@ Open a Terminal and run
 ```cmd
 cd %HOMEPATH%\Desktop\SOFA_BUNDLE_*
 set PYTHONPATH=plugins\SofaPython3\lib\python3\site-packages
-export PYTHONPATH=%PYTHONPATH%:plugins\STLIB\lib\python3\site-packages 
+set PYTHONPATH=%PYTHONPATH%:plugins\STLIB\lib\python3\site-packages 
 bin\runSofa.exe
 ```
 
