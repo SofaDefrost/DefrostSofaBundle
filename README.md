@@ -1,6 +1,8 @@
 # Defrost SOFA Bundle
 
-This is a bundle of SOFA binaries specially intented for soft robotics.  
+This is a bundle of SOFA binaries specially intented for soft robotics 
+The usage is limited to academia: research and teaching.
+
 The bundle contains:
 - [SOFA](https://github.com/sofa-framework/sofa)
 - [SofaPython3](https://github.com/sofa-framework/SofaPython3)
